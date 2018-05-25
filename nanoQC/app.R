@@ -1,13 +1,5 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
+library(shinyFiles)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -18,31 +10,59 @@ ui <- fluidPage(
    # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
+         shinyFilesButton('fastqFile', 
+                          label = 'Select', 
+                          title = 'Please select a Fastq file', 
+                          multiple = FALSE),
+         
+         tags$hr(),
+         
+         checkboxInput("trimming", "Does reads need trimming?", TRUE),
+         
+         sliderInput("minQual",
+                     "Allow bases with minimum quality",
+                     min = 5,
+                     max = 20,
+                     value = 10,
+                     step = 1)
       ),
       
       # Show a plot of the generated distribution
       mainPanel(
-         plotOutput("distPlot")
+          tags$h4('Wellcome to Microanaly\'s NanoQC Tool'),
+          verbatimTextOutput("filename"),
+          verbatimTextOutput("testoutput")
       )
    )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-   
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-   })
+    home = c(home='~')
+    shinyFileChoose(input, 'fastqFile', 
+                    roots = home, 
+                    filetypes = c('fastq', 'fq'))
+    fqfileImport <- reactive({ 
+        fqfileinfo <- parseFilePaths(home, input$fastqFile) 
+        fqpath <- file.path(as.character(fqfileinfo$datapath))
+        if (length(fqpath) == 0) {
+            return(NULL)
+        }
+        return(fqpath)
+    })
+    
+    output$filename <- renderPrint({
+        fqfileImport()
+    })
+
+    output$testoutput <- renderPrint({
+        fq <- fqfileImport()
+        if (!is.null(fq)) {
+            cat("\n")
+        } else {
+            cat("Hello world\n")
+        }
+    })
 }
 
 # Run the application 
