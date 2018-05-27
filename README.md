@@ -14,6 +14,7 @@ NanoQC is a shiny app used for preprocessing [Oxford Nanopore](https://nanoporet
 
 To provide read-length distribution, quality distribution and other useful information to users, we apply [NanoPlot](https://github.com/wdecoster/nanoplot) to calculate these quantities and generate a simple report.
 
+
 ## How to use this app
 
 #### Install required software environments and related packages
@@ -33,3 +34,16 @@ To provide read-length distribution, quality distribution and other useful infor
 #### Launch this app
 
 Once you've installed necessary softwares and packages, you could launch this app in R console or in Rstudio environment.
+
++ Launch
+
+![](img/b4.png)
+
+
++ Running stage
+
+![](img/run.png)
+
++ Job finished
+
+![](img/final.png)
