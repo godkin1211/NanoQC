@@ -117,14 +117,14 @@ server <- function(input, output) {
         input4NanoPlot <- ifelse(doTrim, "cleaned.fastq", fqpath)
         nanoplot_cmd <- paste("NanoPlot -t", threadN, "--fastq", input4NanoPlot, "--plots hex dot", sep = " ")
         system(nanoplot_cmd)
-        system("cp *.html *.log *.png *.txt www/")
+        system("cp *.html *.log *.png *.txt *.fastq www/")
         if (file.exists("NanoPlot-report.html")) return(TRUE)
     })
     
     output$finalReport <- renderUI({
         finished <- runPipeline()
         if (finished) {
-            system("rm -rf *.png *.log *.txt *.html")
+            system("mkdir newProj && mv *.png *.log *.txt *.html *.fastq newProj")
             report <- tags$iframe(src="NanoPlot-report.html", height=840, width=1178)
         }
         print(report)
