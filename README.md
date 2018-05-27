@@ -1,1 +1,1 @@
-# NanoQC
+# ![](www/logo.png) NanoQC
