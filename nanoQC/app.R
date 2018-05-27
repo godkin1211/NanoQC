@@ -5,8 +5,8 @@ library(shinyFiles)
 
 ui <- fluidPage(
    
-   #titlePanel(title=div(img(src="logo.png"), "Microanaly Nanopore Sequencing Data QC Tool")),
-   titlePanel("Test"),
+   titlePanel(title=div(img(src="logo.png"), "Microanaly Nanopore Sequencing Data QC Tool")),
+   #titlePanel("Test"),
     
    # Sidebar
    sidebarLayout(
