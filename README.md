@@ -21,15 +21,15 @@ To provide read-length distribution, quality distribution and other useful infor
 
 + R ( >= 3.4)
 
-+ Shiny and shinyFiles
++ Shiny and [shinyFiles](https://github.com/thomasp85/shinyFiles)
 
-+ Porechop
++ [Porechop](https://github.com/rrwick/Porechop)
 
 + Python ( >= 3.5)
 
-+ NanoFilt
++ [NanoFilt](https://github.com/wdecoster/nanofilt)
 
-+ NanoPlot
++ [NanoPlot](https://github.com/wdecoster/NanoPlot)
 
 #### Launch this app
 
@@ -47,3 +47,9 @@ Once you've installed necessary softwares and packages, you could launch this ap
 + Job finished
 
 ![](img/final.png)
+
+#### Contact us
+
+If you encounter any trouble or have any question about this app, please contact with me any time.
+
+My email address is chiachun[dot]chiu[at]gmail[dot]com .

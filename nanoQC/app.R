@@ -1,31 +1,23 @@
 library(shiny)
 library(shinyFiles)
+library(shinycssloaders)
+library(magrittr)
 
+genRandomChar <- function(x=10) {
+	chars <- c(LETTERS, letters, 0:9, '-', '#', '@', '&', '_', '%')
+    idx <- sample(1:x, 1)
+    randCharSet <- sapply(1:x, function(i) paste(sample(chars, 7, replace = TRUE), collapse=""))
+	randCharSet[idx]
+}
 
 
 ui <- fluidPage(
    
    titlePanel(title=div(img(src="logo.png"), "Microanaly Nanopore Sequencing Data QC Tool")),
-   #titlePanel("Test"),
     
    # Sidebar
    sidebarLayout(
       sidebarPanel(
-          tags$head(tags$style(type="text/css", "
-             #loadmessage {
-                               position: fixed;
-                               top: 0px;
-                               left: 0px;
-                               width: 100%;
-                               padding: 5px 0px 5px 0px;
-                               text-align: center;
-                               font-weight: bold;
-                               font-size: 100%;
-                               color: #000000;
-                               background-color: #CCFF66;
-                               z-index: 105;
-                               }
-                               ")),
          shinyFilesButton('fastqFile', 
                           label = 'Select', 
                           title = 'Please select a Fastq file', 
@@ -54,15 +46,13 @@ ui <- fluidPage(
                      value = 1,
                      step = 1),
          
-         actionButton("goButton", "Start"),
-         conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                          tags$div("Processing, please wait a minute...",id="loadmessage"))
+         actionButton("goButton", "Start")
       ),
       
       # Main
       mainPanel(
           fluidRow(
-              htmlOutput("finalReport")
+              withSpinner(htmlOutput("finalReport"), type = 7)
           )
       )
    )
@@ -72,6 +62,8 @@ ui <- fluidPage(
 server <- function(input, output) {
     home = c(home='~')
     fqpath <- NULL
+	randDir <- genRandomChar()
+    projDir <- file.path(getwd(), 'www', randDir)
     # Choose file
     shinyFileChoose(input, 'fastqFile', 
                     roots = home, 
@@ -79,8 +71,8 @@ server <- function(input, output) {
     
     fqfileImport <- reactive({ 
         fqfileinfo <- parseFilePaths(home, input$fastqFile) 
-        fqpath <<- file.path(as.character(fqfileinfo$datapath))
-        if (length(fqpath) == 0) {
+        fqpath <- file.path(as.character(fqfileinfo$datapath))
+        if (length(fqpath) == 0 | is.null(fqpath)) {
             return(NULL)
         }
         return(fqpath)
@@ -101,15 +93,16 @@ server <- function(input, output) {
         system("echo **************************")
         system("echo * Start NanoQC procedure *")
         system("echo **************************")
+		fqpath <- fqfileImport()
         doTrim <- input$doTrimming
         minLen <- input$minLen
         minQual <- input$minQual
         threadN <- input$threadN
         if (doTrim) {
-            system("echo '*) Performing adapter trimming.........'")
+            system("echo '*) Performing adapter-trimming with porechop.........'")
             porechop_cmd <- paste("porechop -i", fqpath, "-o trimmed.fastq -t", threadN, "--discard_middle", sep = " ")
             system(porechop_cmd)
-            system("echo '*) Performing quality trimming.........'")
+            system("echo '*) Performing quality-trimming with NanoFilt.........'")
             nanofilt_cmd <- paste("NanoFilt -q", minQual, "-l", minLen, "--logfile nanofilt.log < trimmed.fastq > cleaned.fastq" , sep = " ")
             system(nanofilt_cmd)
         }
@@ -117,19 +110,21 @@ server <- function(input, output) {
         input4NanoPlot <- ifelse(doTrim, "cleaned.fastq", fqpath)
         nanoplot_cmd <- paste("NanoPlot -t", threadN, "--fastq", input4NanoPlot, "--plots hex dot", sep = " ")
         system(nanoplot_cmd)
-        system("cp *.html *.log *.png *.txt *.fastq www/")
-        if (file.exists("NanoPlot-report.html")) return(TRUE)
+		system(paste("mkdir -p www/", randDir, sep = "/"))
+        system(paste("mv *.html *.log *.png *.txt *.fastq", paste0("www/", randDir),sep = " "))
+        if (file.exists(paste("www", randDir,"NanoPlot-report.html", sep = "/"))) return(TRUE)
     })
     
     output$finalReport <- renderUI({
         finished <- runPipeline()
         if (finished) {
-            system("mkdir newProj && mv *.png *.log *.txt *.html *.fastq newProj")
-            report <- tags$iframe(src="NanoPlot-report.html", height=840, width=1178)
+            #system("mkdir newProj && mv *.png *.log *.txt *.html *.fastq newProj")
+            report <- tags$iframe(src=paste0(randDir,"/NanoPlot-report.html"), height=840, width=1178)
         }
         print(report)
         report
     })
+    
 }
 
 # Run the application 
