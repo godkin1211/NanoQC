@@ -3,14 +3,37 @@ library(shinyFiles)
 library(shinycssloaders)
 library(magrittr)
 
+######################################################################################################################
+# Check requirements installed
+checkToolExist <- function(toolname) {
+    commands <- paste("command -v", toolname, sep = " ")
+    suppressWarnings(res <- system(commands, ignore.stdout = TRUE, ignore.stderr = TRUE))
+    if (res != 0) stop(paste(toolname, "is required in this app, please check if you have already installed it correctly.", sep = " "))
+}
+
+baseCallTool <- "read_fast5_basecaller.py"
+checkToolExist(baseCallTool)
+
+adapterTrimTool <- "porechop"
+checkToolExist(adapterTrimTool)
+
+qualityTrimTool <- "NanoFilt"
+checkToolExist(qualityTrimTool)
+
+qcPlotTool <- "NanoPlot"
+checkToolExist(qcPlotTool)
+
+######################################################################################################################
+# Generate randomized string
 genRandomChar <- function(x=10) {
 	chars <- c(LETTERS, letters, 0:9, '-', '#', '@', '&', '_', '%')
     idx <- sample(1:x, 1)
     randCharSet <- sapply(1:x, function(i) paste(sample(chars, 7, replace = TRUE), collapse=""))
 	randCharSet[idx]
 }
+######################################################################################################################
 
-
+# UI
 ui <- fluidPage(
    
    titlePanel(title=div(img(src="logo.png"), "Microanaly Nanopore Sequencing Data QC Tool")),
@@ -77,7 +100,7 @@ server <- function(input, output) {
         }
         return(fqpath)
     })
-    
+    e
     
     output$filename <- renderPrint({
         fqfilename <- fqfileImport()
@@ -118,7 +141,6 @@ server <- function(input, output) {
     output$finalReport <- renderUI({
         finished <- runPipeline()
         if (finished) {
-            #system("mkdir newProj && mv *.png *.log *.txt *.html *.fastq newProj")
             report <- tags$iframe(src=paste0(randDir,"/NanoPlot-report.html"), height=840, width=1178)
         }
         print(report)
@@ -129,4 +151,3 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
